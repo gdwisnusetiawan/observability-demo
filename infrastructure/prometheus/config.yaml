@@ -1,0 +1,17 @@
+global:
+  evaluation_interval: 30s
+  scrape_interval: 5s
+scrape_configs:
+- job_name: apps-metrics
+  honor_labels: true
+  static_configs:
+  - targets:
+    - 'otelcol:9464'
+- job_name: otelcol-metrics
+  static_configs:
+  - targets:
+    - 'otelcol:8888'
+- job_name: jaeger-metrics
+  static_configs:
+  - targets:
+    - 'jaeger:4317'

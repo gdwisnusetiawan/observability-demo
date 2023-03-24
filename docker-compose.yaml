@@ -1,0 +1,56 @@
+version: '3.9'
+services:
+  # Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    restart: unless-stopped
+    ports:
+      - "${JAEGER_SERVICE_PORT}:${JAEGER_SERVICE_PORT}"   # Jaeger UI
+      - "4317"                                            # OTLP gRPC default port
+    environment:
+      - JAEGER_DISABLED=true
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:9.1.0
+    container_name: grafana
+    ports:
+      - "${GRAFANA_SERVICE_PORT}:${GRAFANA_SERVICE_PORT}"
+    volumes:
+      - ./infrastructure/grafana/datasources/:/etc/grafana/provisioning/datasources/
+
+  # Otel Collector
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.73.0
+    container_name: otel-col
+    restart: unless-stopped
+    command: [ "--config=/etc/otelcol-config.yml" ]
+    volumes:
+      - ./infrastructure/otelcollector/config.yml:/etc/otelcol-config.yml
+    ports:
+      - "4317:4317"     # OTLP over gRPC receiver
+      # - "4318:4318"   # OTLP over HTTP receiver
+      - "9464"          # apps metrics exporter
+      - "8888"          # otelcol metrics exporter
+    depends_on:
+      - jaeger
+
+  # Prometheus
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.34.0
+    container_name: prometheus
+    command:
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --storage.tsdb.retention.time=1h
+      - --config.file=/etc/prometheus/prometheus-config.yaml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+      - --web.route-prefix=/
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./infrastructure/prometheus/config.yaml:/etc/prometheus/prometheus-config.yaml
+    ports:
+      - "${PROMETHEUS_SERVICE_PORT}:${PROMETHEUS_SERVICE_PORT}"

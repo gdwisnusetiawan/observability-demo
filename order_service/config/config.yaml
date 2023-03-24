@@ -1,0 +1,6 @@
+App:
+  Name: order-service
+  Port: 3001
+
+Observability:
+  OtelEndpoint: localhost:4317

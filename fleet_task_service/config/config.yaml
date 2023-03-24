@@ -1,0 +1,6 @@
+App:
+  Name: fleet-task-service
+  Port: 3002
+
+Observability:
+  OtelEndpoint: localhost:4317
