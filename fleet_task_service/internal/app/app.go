@@ -32,6 +32,8 @@ func (s *app) Run() error {
 		}
 	}()
 
+	fleetTask.InitBrokerProducer()
+
 	s.fiber.Use(otelfiber.Middleware())
 
 	v1 := s.fiber.Group("fleet-task")

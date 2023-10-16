@@ -32,6 +32,7 @@ func (a *app) Run() error {
 			log.Printf("Error shutting down tracer provider: %v", err)
 		}
 	}()
+	defer func() { _ = tp.Shutdown(context.TODO()) }()
 
 	mp, _ := observability.InitMeterProvider(a.cfg.App.Name, a.cfg.Observability.OtelEndpoint)
 	defer func() {
